@@ -1,16 +1,20 @@
-import { Link } from "react-router-dom";
+// src/Home.tsx
+import { Link } from 'react-router-dom';
+import { Button } from '@shadcn/ui';
 
 const Home = () => {
   return (
-    <div className="text-center space-y-4">
-      <h1 className="text-2xl font-bold">Welcome to the E-Commerce App</h1>
-      <div className="flex justify-center space-x-4">
-        <Link to="/products" className="p-3 bg-blue-500 text-white rounded">
-          Manage Products
-        </Link>
-        <Link to="/carts" className="p-3 bg-green-500 text-white rounded">
-          Manage Carts
-        </Link>
+    <div className="flex justify-center items-center h-screen">
+      <div>
+        <h1 className="text-4xl mb-4">Welcome to the E-Commerce App</h1>
+        <div className="flex flex-col items-center">
+          <Link to="/products">
+            <Button className="mb-4">Go to Products</Button>
+          </Link>
+          <Link to="/cart">
+            <Button className="mb-4">Go to Cart</Button>
+          </Link>
+        </div>
       </div>
     </div>
   );

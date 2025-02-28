@@ -1,26 +1,24 @@
-import axios from "axios";
+import axios from 'axios';
 
-const API_URL = "https://fakestoreapi.com/carts";
+const API_URL = 'https://fakestoreapi.com/carts';
 
-
-export const getCarts = async () => {
+export const fetchAllCarts = async () => {
   const response = await axios.get(API_URL);
   return response.data;
 };
 
-export const getCartById = async (id: number) => {
+export const fetchSingleCart = async (id: number) => {
   const response = await axios.get(`${API_URL}/${id}`);
   return response.data;
 };
 
-export const addCart = async (cart: { userId: number; products: any[] }) => {
+export const addNewCart = async (cart: any) => {
   const response = await axios.post(API_URL, cart);
   return response.data;
 };
 
-
-export const updateCart = async (id: number, updatedCart: any) => {
-  const response = await axios.put(`${API_URL}/${id}`, updatedCart);
+export const updateCart = async (id: number, cart: any) => {
+  const response = await axios.put(`${API_URL}/${id}`, cart);
   return response.data;
 };
 

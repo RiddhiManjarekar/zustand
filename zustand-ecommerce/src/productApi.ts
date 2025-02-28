@@ -1,24 +1,24 @@
-import axios from "axios";
+import axios from 'axios';
 
-const API_URL = "https://fakestoreapi.com/products";
+const API_URL = 'https://fakestoreapi.com/products';
 
-export const getProducts = async () => {
+export const fetchAllProducts = async () => {
   const response = await axios.get(API_URL);
   return response.data;
 };
 
-export const getProductById = async (id: number) => {
+export const fetchSingleProduct = async (id: number) => {
   const response = await axios.get(`${API_URL}/${id}`);
   return response.data;
 };
 
-export const addProduct = async (product: any) => {
+export const addNewProduct = async (product: any) => {
   const response = await axios.post(API_URL, product);
   return response.data;
 };
 
-export const updateProduct = async (id: number, updatedProduct: any) => {
-  const response = await axios.put(`${API_URL}/${id}`, updatedProduct);
+export const updateProduct = async (id: number, product: any) => {
+  const response = await axios.put(`${API_URL}/${id}`, product);
   return response.data;
 };
 

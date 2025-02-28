@@ -1,85 +1,115 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getProducts, addProduct, updateProduct, deleteProduct } from "./productsApi";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import Sidebar from "./Sidebar";
+import React, { useState } from 'react';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { fetchAllProducts, addNewProduct, updateProduct, deleteProduct } from './productApi';
+import useStore from './useStore';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 
 const Products = () => {
-  const queryClient = useQueryClient();
-  const [newProduct, setNewProduct] = useState({ title: "", price: 0 });
+  const { data: products, isLoading, error } = useQuery({ queryKey: ['products'], queryFn: fetchAllProducts });
+  const { setProducts } = useStore((state) => state);
 
-  const { data: products, isLoading, error } = useQuery({
-    queryKey: ["products"],
-    queryFn: getProducts,
+  React.useEffect(() => {
+    if (products) {
+      setProducts(products);
+    }
+  }, [products, setProducts]);
+
+  const [productDetails, setProductDetails] = useState({
+    title: '',
+    price: 0,
+    description: '',
+    image: '',
   });
 
-  const addProductMutation = useMutation({
-    mutationFn: addProduct,
-    onSuccess: () => {
-      alert("Product added successfully!");
-      queryClient.invalidateQueries({ queryKey: ["products"] });
+  const mutationAdd = useMutation({
+    mutationFn: addNewProduct,
+    onSuccess: (data) => {
+      setProducts((prev) => [...prev, data]);
+    },
+    onError: (error) => {
+      console.error("Error adding product:", error);
     },
   });
 
-  const updateProductMutation = useMutation({
-    mutationFn: ({ id, updatedProduct }: { id: number; updatedProduct: any }) =>
-      updateProduct(id, updatedProduct),
-    onSuccess: () => {
-      alert("Product updated successfully!");
-      queryClient.invalidateQueries({ queryKey: ["products"] });
+  const mutationUpdate = useMutation({
+    mutationFn: updateProduct,
+    onSuccess: (data) => {
+      setProducts((prev) =>
+        prev.map((product) => (product.id === data.id ? { ...product, ...data } : product))
+      );
+    },
+    onError: (error) => {
+      console.error("Error updating product:", error);
     },
   });
 
-  const deleteProductMutation = useMutation({
+  const mutationDelete = useMutation({
     mutationFn: deleteProduct,
-    onSuccess: () => {
-      alert("Product deleted successfully!");
-      queryClient.invalidateQueries({ queryKey: ["products"] });
+    onSuccess: (id) => {
+      setProducts((prev) => prev.filter((product) => product.id !== id));
+    },
+    onError: (error) => {
+      console.error("Error deleting product:", error);
     },
   });
 
-  if (isLoading) return <p>Loading products...</p>;
-  if (error) return <p>Error loading products</p>;
+  const handleAddProduct = () => {
+    if (!productDetails.title || productDetails.price <= 0) {
+      alert('Please provide valid product details');
+      return;
+    }
+    mutationAdd.mutate(productDetails);
+  };
+
+  const handleUpdateProduct = (id: number) => {
+    mutationUpdate.mutate({ id, ...productDetails });
+  };
+
+  const handleDeleteProduct = (id: number) => {
+    mutationDelete.mutate(id);
+  };
+
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error.message}</div>;
 
   return (
-    <div className="flex">
-      <Sidebar />
-      <div className="p-6 w-full">
-        <h1 className="text-xl font-bold mb-4">Products</h1>
-
-        
-        <input
-          type="text"
-          placeholder="Product Title"
-          value={newProduct.title}
-          onChange={(e) => setNewProduct({ ...newProduct, title: e.target.value })}
-          className="border p-2 mr-2"
-        />
-        <input
-          type="number"
-          placeholder="Price"
-          value={newProduct.price}
-          onChange={(e) => setNewProduct({ ...newProduct, price: Number(e.target.value) })}
-          className="border p-2 mr-2"
-        />
-        <Button onClick={() => addProductMutation.mutate(newProduct)}>Add Product</Button>
-
-       
-        <ul className="mt-6">
-          {products.map((product: any) => (
-            <li key={product.id} className="border p-4 flex justify-between items-center">
-              <span>{product.title} - ${product.price}</span>
-              <div>
-                <Button onClick={() => updateProductMutation.mutate({ id: product.id, updatedProduct: { title: "Updated Title" } })}>
-                  Update
-                </Button>
-                <Button onClick={() => deleteProductMutation.mutate(product.id)} className="ml-2">
-                  Delete
-                </Button>
-              </div>
-            </li>
-          ))}
-        </ul>
+    <div>
+      <Button onClick={handleAddProduct}>Add Product</Button>
+      <Input
+        value={productDetails.title}
+        onChange={(e) => setProductDetails({ ...productDetails, title: e.target.value })}
+        placeholder="Title"
+      />
+      <Input
+        type="number"
+        value={productDetails.price}
+        onChange={(e) => setProductDetails({ ...productDetails, price: +e.target.value })}
+        placeholder="Price"
+      />
+      <Input
+        value={productDetails.description}
+        onChange={(e) => setProductDetails({ ...productDetails, description: e.target.value })}
+        placeholder="Description"
+      />
+      <Input
+        value={productDetails.image}
+        onChange={(e) => setProductDetails({ ...productDetails, image: e.target.value })}
+        placeholder="Image URL"
+      />
+      <div>
+        {products?.map((product) => (
+          <Card key={product.id}>
+            <div>
+              <img src={product.image} alt={product.title} />
+              <p>{product.title}</p>
+              <p>{product.description}</p>
+              <Button onClick={() => handleUpdateProduct(product.id)}>Update</Button>
+              <Button onClick={() => handleDeleteProduct(product.id)}>Delete</Button>
+            </div>
+          </Card>
+        ))}
       </div>
     </div>
   );
